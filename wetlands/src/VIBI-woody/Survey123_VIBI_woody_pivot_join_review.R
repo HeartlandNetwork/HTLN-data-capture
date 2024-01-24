@@ -15,6 +15,21 @@ library(tidyverse)
 load_file1 <- read_csv("CUVA_VIBI_woody1.csv")
 problems(load_file1)
 
+load_file1 <- load_file1 |>
+  mutate(
+    SpeciesCode = WoodySpecies
+  )
+
+glimpse(load_file1)
+
+load_file1 <- load_file1 |>
+  select(WoodyModule, SpeciesCode, DiameterClassRange, Count,
+         EditDate, WoodySiteName, ShrubClump,
+         D0to1, D1to2_5, D2_5to5, D5to10, D10to15, D15to20,
+         D20to25, D25to30, D30to35, D35to40, Dgt40,
+         Dgt40_1, Dgt40_2, Dgt40_3, Dgt40_4, Dgt40_5) 
+
+
 WoodySpecies_LUT <- read_csv("WoodySpecies_LUT2.csv")
 
 load_file1 <- load_file1 |>
@@ -37,6 +52,7 @@ load_file1 |>
 
 load_file2 <- read_csv("CUVA_VIBI_woody2.csv")
 problems(load_file2)
+
 load_file3 <- read_csv("CUVA_VIBI_woody3.csv")
 problems(load_file3)
 
@@ -106,7 +122,7 @@ glimpse(Access_data)
 # create the LocationID column from the FeatureID column
 # and a lookup table from HTLNWetlands
 
-Locations_LUT <- read_csv("Locations_LUT.csv")
+Locations_LUT <- read_csv("tbl_Locations_20230316.csv")
 
 glimpse(Locations_LUT)
 
@@ -121,7 +137,7 @@ glimpse(Access_data)
 Access_data |>
   select(WoodySiteName, FeatureID, LocationID) |>
   filter(is.na(LocationID)) |>
-  distinct()
+  distinct()   #<<<<<<<<<<<<<<<<<<<<<<<<<<<<< STOPPED HERE 1/24/24
 
 
 
