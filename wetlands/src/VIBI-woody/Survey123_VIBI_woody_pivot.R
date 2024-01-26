@@ -21,7 +21,9 @@ WoodySpecies_LUT <- read_csv("WoodySpecies_LUT2.csv")
 load_file1 <- load_file1 |>
   left_join(WoodySpecies_LUT, join_by(SpeciesCode))
 
-glimpse(load_file1)
+#glimpse(load_file1)
+
+#glimpse(WoodySpecies_LUT)
 
 # view(load_file1)
 

@@ -1,36 +1,54 @@
 
-##########
-#
-# This script takes woody VIBI data from Survey123 and 
-#   transforms the BIG tree (> 40 cm DBH) portion to be
-#   loaded into the tbl_BigTree table in the HTLNWetlands
-#   database
-#
-##########
+#setwd("./HTLN-Data-Capture-Scripts/wetlands/src/VIBI-BigTrees")
 
-
-##########
-#
-# Step 1 - Load data
-#
-##########
 
 
 library(tidyverse)
 
-#setwd("../HTLN-Data-Capture-Scripts/wetlands/src")
-
 
 # load the Survey123 data
+#
+#
+# species codes were only used in CUVA_VIBI_woody1.csv
+# join to create WoodySpecies
 
 load_file1 <- read_csv("CUVA_VIBI_woody1.csv")
 problems(load_file1)
 
+glimpse(load_file1)
+
+WoodySpecies_LUT <- read_csv("WoodySpecies_LUT2.csv")
+problems(WoodySpecies_LUT)
+
+glimpse(WoodySpecies_LUT)
+
+load_file1 <- load_file1 |>
+  left_join(WoodySpecies_LUT, join_by(SpeciesCode))
+
+glimpse(load_file1)
+
+view(load_file1)
+
+##view(load_file1)
+
+# check for NAs in WoodySpecies 
+
+
+load_file1 |>
+  select(SpeciesCode, WoodySpecies) |>
+  filter(is.na(WoodySpecies)) |>
+  distinct()
+
+
 load_file2 <- read_csv("CUVA_VIBI_woody2.csv")
 problems(load_file2)
 
+view(load_file2)
+
 load_file3 <- read_csv("CUVA_VIBI_woody3.csv")
 problems(load_file3)
+
+view(load_file3)
 
 glimpse(load_file1)
 glimpse(load_file2)
@@ -46,7 +64,6 @@ load_file <- Access_data
 
 glimpse(Access_data)
 
-view(Access_data)
 
 ##########
 #
@@ -98,7 +115,8 @@ glimpse(Access_data)
 #
 ##########
 
-Locations_LUT <- read_csv("Locations_LUT.csv")
+
+Locations_LUT <- read_csv("tbl_Locations_20230316.csv")
 
 glimpse(Locations_LUT)
 
@@ -142,7 +160,7 @@ Access_data$Tree4 <- Access_data$Dgt40_4
 Access_data$Tree5 <- Access_data$Dgt40_5
 
 Access_data <- Access_data |>
-  mutate( SpeciesCode = WoodySpecies) |>
+  mutate( Scientific_Name = WoodySpecies) |>
   mutate( SampleDate = EditDate) |>
   select(EventID, LocationID, Module_No, Scientific_Name, Tree1, 
          Tree2, Tree3, Tree4, Tree5)
