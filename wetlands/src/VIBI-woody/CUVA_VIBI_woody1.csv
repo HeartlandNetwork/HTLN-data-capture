@@ -1,4 +1,4 @@
-﻿ObjectID,GlobalID,WoodyModule,WoodySpecies,DiameterClassRange,Count,ParentGlobalID,CreationDate,Creator,EditDate,Editor,WoodySiteName,ShrubClump,D0to1,D1to2_5,D2_5to5,D5to10,D10to15,D15to20,D20to25,D25to30,D30to35,D35to40,Dgt40,Dgt40_1,Dgt40_2,Dgt40_3,Dgt40_4,Dgt40_5
+﻿ObjectID,GlobalID,WoodyModule,SpeciesCode,DiameterClassRange,Count,ParentGlobalID,CreationDate,Creator,EditDate,Editor,WoodySiteName,ShrubClump,D0to1,D1to2_5,D2_5to5,D5to10,D10to15,D15to20,D20to25,D25to30,D30to35,D35to40,Dgt40,Dgt40_1,Dgt40_2,Dgt40_3,Dgt40_4,Dgt40_5
 17,fa3c558e-1a06-493c-824a-d8b157ed3f22,1,SLXEXI,,,9ec44fc3-2a29-4c75-a04a-dddd701dd9e5,6/27/2023 18:42,dmarcum@nps.gov_nps,6/27/2023 18:42,dmarcum@nps.gov_nps,969,8,46,240,44,,,,,,,,,,,,,
 18,61847220-fcc1-4823-bc9d-c501fb4f2b3c,1,STNDEAD,,,9ec44fc3-2a29-4c75-a04a-dddd701dd9e5,6/27/2023 18:42,dmarcum@nps.gov_nps,6/27/2023 18:42,dmarcum@nps.gov_nps,969,,25,33,1,,,,,,,,,,,,,
 19,dc772a7c-7bd8-4349-8571-49450acda364,1,COROBL,,,9ec44fc3-2a29-4c75-a04a-dddd701dd9e5,6/27/2023 18:42,dmarcum@nps.gov_nps,6/27/2023 18:42,dmarcum@nps.gov_nps,969,,1,,,,,,,,,,,,,,,
