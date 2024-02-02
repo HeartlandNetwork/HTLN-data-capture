@@ -1,7 +1,7 @@
 
 library(tidyverse)
 
-#setwd("./src")
+#setwd("./")
 
 # load the Survey123 data
 
@@ -21,8 +21,7 @@ Access_data <- bind_rows(Access_data,load_file3)
 
 glimpse(Access_data)
 
-# record count is 1731. 
-# From the spreadsheets: 304 + 280 + 1147 = 1731
+1017 + 1281 + 1780
 
 # select columns from Survey 123 and create FeatureID column
 
@@ -89,8 +88,7 @@ Access_data <- Access_data |>
 
 glimpse(Access_data)
 
-
-write_csv(Access_data, Access_data$Outfile[1])
+# write_csv(Access_data, Access_data$Outfile[1])
 
 writexl::write_xlsx(Access_data, "Load_VIBI_herb_2023.xlsx")
   
