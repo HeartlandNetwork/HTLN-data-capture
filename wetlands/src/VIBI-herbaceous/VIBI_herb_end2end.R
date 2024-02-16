@@ -1,7 +1,29 @@
 
+################################################################################
+#
+#  VIBI_herb_end2end.R
+#
+#  Gareth Rowell, 2/16/
+
+#  This end2end test compares the original 2023 data against
+#  the exported table tbl_VIBI_herb after its been appended with the 
+#  2023 data.
+#
+#
+################################################################################
+
+
 library(tidyverse)
 
 #setwd("./")
+
+
+#################
+#
+# Step 1 - load spreadsheet csv files and appended them
+#
+#################
+
 
 # load the Survey123 data
 
@@ -23,7 +45,12 @@ glimpse(Access_data)
 
 1017 + 1281 + 1780
 
-# select columns from Survey 123 and create FeatureID column
+#################
+#
+# Step 2 - select and rename columns, convert date to yyyy-mm-dd
+#
+#################
+
 
 Access_data <- Access_data |> 
   select(Species, SpeciesComments, Module, CoverClass_LT_6m, 
@@ -36,24 +63,54 @@ Access_data <- Access_data |>
 
 glimpse(Access_data)
 
-# Substitute NA with -9999 in CoverClass and CoverClassAll
+
+#################
+#
+# Step 3 - Substitute NA with -9999 in CoverClass and CoverClassAll
+#
+#################
+
 
 Access_data$CoverClass <- Access_data$CoverClass |> replace_na(-9999)
 
 Access_data$CoverClassAll <- Access_data$CoverClassAll |> replace_na(-9999)
 
 
-# Generate EventID from EditDate
+#################
+#
+# Step 4a - Generate EventID from EditDate
+#
+#################
 
 Access_data <- Access_data |>
   mutate( EventID = str_c( 'CUVAWetlnd', EditDate)) |>
-  mutate(EventID = str_replace_all(EventID, "-", ""))
+  mutate(EventID = str_replace_all(EventID, "-", "")) |>
+  mutate(NumMonth = str_sub(EventID, start = 15L, end = -3L)) 
 
-glimpse(Access_data)
+#################
+#
+# Step 4b - Replace numeric month with text month abbreviation
+#
+#################
 
-# create the LocationID column from the FeatureID column
-# and a lookup table from HTLNWetlands
-# ERROR - FeatureIDs not joining 
+Months_LUT <- read_csv("Months_LUT.csv")
+
+Access_data <- Access_data |>
+  left_join(Months_LUT, join_by(NumMonth))
+
+Access_data <- Access_data |>
+  mutate(EventID_left = str_sub(EventID, start = 1L, end = -5)) |>
+  mutate(EventID_right = str_sub(EventID, start = 17, end = -1)) 
+
+Access_data <- Access_data |>
+  mutate(EventID = str_c(EventID_left, TxtMonth, EventID_right))
+
+
+#################
+#
+# Step 5 - Create the LocationID column from the FeatureID column
+#
+#################
 
 
 Locations_LUT <- read_csv("tbl_Locations_20230316.csv")
@@ -63,34 +120,23 @@ glimpse(Locations_LUT)
 Access_data <- Access_data |>
   left_join(Locations_LUT, join_by(FeatureID))
 
-glimpse(Access_data)
 
-# create an output file with a timestamp
-# and include it in the dataframe for reference
-
-
-Access_data <- Access_data |>
-  mutate(
-    My_timestamp = now(),
-    My_timestamp = as.character(My_timestamp),
-    My_timestamp = str_replace_all(My_timestamp, " ", "_"),
-    My_timestamp = str_replace_all(My_timestamp, ":", ""),
-    Outfile = str_c("VIBI_herb_", My_timestamp,".csv")
-  ) 
-
-glimpse(Access_data)
+#################
+#
+# Step 6 - Clean up columns and write load file
+#
+#################
 
 # clean up columns
 
 Access_data <- Access_data |>
   select(EventID, FeatureID, LocationID, Species, SpeciesComments, Module,
-         CoverClass, CoverClassAll, EditDate, Outfile )
-
-glimpse(Access_data)
-
-# write_csv(Access_data, Access_data$Outfile[1])
+         CoverClass, CoverClassAll, EditDate )
 
 # writexl::write_xlsx(Access_data, "Load_VIBI_herb_2023.xlsx")
+
+#------------------------------------------------------------------------------
+# End2End test begins here
 
 end2end <- read_csv("qrye2e_VIBI_herb.csv")
   
@@ -100,19 +146,10 @@ glimpse(end2end)
 
 glimpse(Access_data)
 
-# need to extract year out of EventID from end2end df
+# 7 records got dropped. Which ones?
 
-end2end <- end2end |>
-  mutate( Year = str_sub(EventID, start = 11L, end = -6L)) 
+# left_join(d1, d2, by = c("x" = "x2", "y" = "y2"))
 
-view(end2end)
-
-
-|>
-  mutate( Year = as.integer(Year)) |>
-  filter( Year == 2023 )
-
-view(end2end)
-  
-glimpse(end2end)
+left_join(end2end, Access_data, 
+    by = c("EventID" = "EventID", "LocationID" = "LocationID", ))
 
