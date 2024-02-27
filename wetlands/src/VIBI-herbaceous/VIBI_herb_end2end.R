@@ -138,6 +138,20 @@ Access_data <- Access_data |>
 #------------------------------------------------------------------------------
 # End2End test begins here
 
+# test for duplicates in the Access data
+
+Access_data |>
+  count(EventID, FeatureID, Species, Module, CoverClass) |>
+  filter(n > 1)
+
+# Need to resolve these duplicates with Sonia.
+
+# Also, there's a bunch of null values in the CoverClass variable
+
+Access_data |>
+  filter(CoverClass == -9999)
+
+
 end2end <- read_csv("qrye2e_VIBI_herb.csv")
   
 problems(end2end)
@@ -146,17 +160,59 @@ glimpse(end2end)
 
 glimpse(Access_data)
 
+# matching column names
+
 Access_data <- Access_data |>
   mutate(
-    ModNo = Module
+    ModNo = Module,
     CovCode = CoverClass
   )
 
-# 7 records got dropped. Which ones?
+
+# Selecting the columns that matter
+
+Access_data <- Access_data |>
+  select(EventID, LocationID, Species, ModNo, CovCode)
+
+end2end <- end2end |>
+  select(EventID, LocationID, Species, ModNo, CovCode)
+
+# testing for PK - unique no-nulls
+
+Access_data |>
+  count(EventID, LocationID, Species, ModNo, CovCode) |>
+  filter(n > 1)
+
+end2end |>
+  count(EventID, LocationID, Species, ModNo, CovCode) |>
+  filter(n > 1)
+
+# need to delete duplicates from database and reexport <<<<<<<<<<<<<<<<<<<
+# manually delete duplicates from Access_data and retest
 
 
 
-test1 <- left_join(end2end, Access_data, 
+
+
+
+
+
+
+
+test1 <- inner_join(Access_data, end2end,
     by = c("EventID" = "EventID", "LocationID" = "LocationID", "Species" = "Species",
-           "ModNo" = "ModNo", "CovCode" = "CovCode" ))
+           "ModNo" = "ModNo", "CovCode" = "CovCode" )) 
+
+    
+
+
+
+
+
+
+
+
+
+
+
 
