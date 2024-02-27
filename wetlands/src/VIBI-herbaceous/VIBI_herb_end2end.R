@@ -3,7 +3,7 @@
 #
 #  VIBI_herb_end2end.R
 #
-#  Gareth Rowell, 2/16/
+#  Gareth Rowell, 2/16/2024
 
 #  This end2end test compares the original 2023 data against
 #  the exported table tbl_VIBI_herb after its been appended with the 
@@ -146,10 +146,17 @@ glimpse(end2end)
 
 glimpse(Access_data)
 
+Access_data <- Access_data |>
+  mutate(
+    ModNo = Module
+    CovCode = CoverClass
+  )
+
 # 7 records got dropped. Which ones?
 
-# left_join(d1, d2, by = c("x" = "x2", "y" = "y2"))
 
-left_join(end2end, Access_data, 
-    by = c("EventID" = "EventID", "LocationID" = "LocationID", ))
+
+test1 <- left_join(end2end, Access_data, 
+    by = c("EventID" = "EventID", "LocationID" = "LocationID", "Species" = "Species",
+           "ModNo" = "ModNo", "CovCode" = "CovCode" ))
 
