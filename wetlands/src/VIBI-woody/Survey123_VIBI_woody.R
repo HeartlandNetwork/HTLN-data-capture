@@ -55,13 +55,36 @@ Access_data$BIG <- Access_data$Dgt40
 
 glimpse(Access_data)
 
-# Generate EventID from EditDate
+
+#################
+#
+# Step 4a - Generate EventID from EditDate
+#
+#################
 
 Access_data <- Access_data |>
-	  mutate( EventID = str_c( 'CUVAWetlnd', EditDate)) |>
-	    mutate(EventID = str_replace_all(EventID, "-", ""))
+  mutate( EventID = str_c( 'CUVAWetlnd', EditDate)) |>
+  mutate(EventID = str_replace_all(EventID, "-", "")) |>
+  mutate(NumMonth = str_sub(EventID, start = 15L, end = -3L)) 
 
-glimpse(Access_data)
+#################
+#
+# Step 4b - Replace numeric month with text month abbreviation
+#
+#################
+
+Months_LUT <- read_csv("Months_LUT.csv")
+
+Access_data <- Access_data |>
+  left_join(Months_LUT, join_by(NumMonth))
+
+Access_data <- Access_data |>
+  mutate(EventID_left = str_sub(EventID, start = 1L, end = -5)) |>
+  mutate(EventID_right = str_sub(EventID, start = 17, end = -1)) 
+
+Access_data <- Access_data |>
+  mutate(EventID = str_c(EventID_left, TxtMonth, EventID_right))
+
 
 
 # create the LocationID column from the FeatureID column

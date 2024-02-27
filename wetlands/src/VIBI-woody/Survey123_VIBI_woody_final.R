@@ -1,5 +1,17 @@
 
 
+################################################################################
+#
+#  Survey123_VIBI_woody_final.R
+#
+#  Gareth Rowell, 2/16/2024
+#
+#  This script converts csv files exported from Survey123 VIBI woody
+#  data to create a file that can be loaded into MS Access and directly
+#  appended to the tbl_VIBI_woody table.
+#
+################################################################################
+
 library(tidyverse)
 
 #setwd("../HTLN-Data-Capture-Scripts/wetlands/src")
@@ -7,11 +19,15 @@ library(tidyverse)
 
 #setwd("./src")
 
-# load the Survey123 data
+#################
 #
+# Step 1 - load spreadsheet csv files and appended them
 #
+#################
+
+
 # species codes were only used in CUVA_VIBI_woody1.csv
-# join to create WoodySpecies
+# join to WoodySPecies_LUT2.csv to create WoodySpecies
 
 load_file1 <- read_csv("CUVA_VIBI_woody1.csv")
 problems(load_file1)
@@ -61,9 +77,12 @@ glimpse(Access_data)
 
 304 + 280 + 1147
 
+#################
+#
+# Step 2 - select and rename columns, convert date to yyyy-mm-dd
+#
+#################
 
-
-# select columns for Access import
 
 Access_data <- Access_data |>
 	select(WoodyModule, WoodySpecies, EditDate, WoodySiteName, ShrubClump, D0to1,
@@ -77,9 +96,13 @@ Access_data <- Access_data |>
 
 glimpse(Access_data)
 
+#################
+#
+# Step 3 - Rename columns using DiamID values for pivot_longer
+#
+#################
 
 
-# Rename columns using DiamID values for pivot_longer
 
 Access_data$Col1 <- Access_data$ShrubClump 
 Access_data$Col2<- Access_data$D0to1 
@@ -103,6 +126,24 @@ Access_data <- Access_data |>
 	    mutate(EventID = str_replace_all(EventID, "-", ""))
 
 glimpse(Access_data)
+
+#################
+#
+# Step 4b - Replace numeric month with text month abbreviation
+#
+#################
+
+Months_LUT <- read_csv("Months_LUT.csv")
+
+Access_data <- Access_data |>
+  left_join(Months_LUT, join_by(NumMonth))
+
+Access_data <- Access_data |>
+  mutate(EventID_left = str_sub(EventID, start = 1L, end = -5)) |>
+  mutate(EventID_right = str_sub(EventID, start = 17, end = -1)) 
+
+Access_data <- Access_data |>
+  mutate(EventID = str_c(EventID_left, TxtMonth, EventID_right))
 
 
 #<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
