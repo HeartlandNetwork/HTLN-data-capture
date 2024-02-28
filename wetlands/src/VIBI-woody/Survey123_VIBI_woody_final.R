@@ -22,6 +22,8 @@ library(tidyverse)
 #################
 #
 # Step 1 - load spreadsheet csv files and appended them
+# Note - species codes were only used in CUVA_VIBI_woody1.csv
+# They were joined to WoodySpecies_LUT2.csv to create WoodySpecies
 #
 #################
 
@@ -103,7 +105,6 @@ glimpse(Access_data)
 #################
 
 
-
 Access_data$Col1 <- Access_data$ShrubClump 
 Access_data$Col2<- Access_data$D0to1 
 Access_data$Col3 <- Access_data$D1to2_5 
@@ -119,7 +120,12 @@ Access_data$Col12 <- Access_data$Dgt40
 
 glimpse(Access_data)
 
-# Generate EventID from EditDate
+#################
+#
+# Step 4 - Generate EventID from EditDate
+#
+#################
+
 
 Access_data <- Access_data |>
 	  mutate( EventID = str_c( 'CUVAWetlnd', EditDate)) |>
@@ -146,9 +152,12 @@ Access_data <- Access_data |>
   mutate(EventID = str_c(EventID_left, TxtMonth, EventID_right))
 
 
-#<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
-# create the LocationID column from the FeatureID column
-# and a lookup table from HTLNWetlands
+#################
+#
+# Step 5 - create the LocationID column from the FeatureID column
+#          and a lookup table from HTLNWetlands
+#
+#################
 
 Locations_LUT <- read_csv("tbl_Locations_20230316.csv")
 
@@ -159,23 +168,12 @@ Access_data <- Access_data |>
 
 glimpse(Access_data)
 
-#<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#################
+#
+# Step 6 - set up columns before normalization, then pivot longer
+#
+#################
 
-# create Scientific_Name column from WoodySpecies codes 
-
-WoodySpecies_LUT <- read_csv("WoodySpecies_LUT2.csv")
-
-glimpse(WoodySpecies_LUT)
-
-Access_data <- Access_data |>
-  left_join(WoodySpecies_LUT, join_by(WoodySpecies))
-
-# does the above code through many-to-many warning?? <<<<<<<<<<<<<<<<
-# see WoodySpecies_LUT cleanup script
-
-glimpse(Access_data)
-
-# set up columns before normalization
 
 Access_data <- Access_data |>
 	select(EventID, LocationID, FeatureID, Module_No, WoodySpecies, 
@@ -196,9 +194,13 @@ Access_data <- Access_data |>
 glimpse(Access_data)
 
 
-## <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
+#################
+#
+# Step 7 - Join the diameter information from a LUT
+#
+#################
 
-# Join the diameter information from a LUT
+
 
 Diam_LUT <- read_csv("Diam_LUT.csv")
 
@@ -207,15 +209,22 @@ glimpse(Diam_LUT)
 Access_data <- Access_data |>
   left_join(Diam_LUT, join_by(DiamID))
 
-# Need an end-to-end test after all the column manipulations -------------------
-# Sum of counts in initial load file
+
+#################
+#
+# Step 8 - Validate normalization and join using
+#          Sum of counts in initial load file
+#          against total_counts for each diameter 
+#          in final version
+#
+#################
+
 
 
 Initial_load <- load_file |>
   select(ShrubClump, D0to1,
          D1to2_5, D2_5to5, D5to10, D10to15, D15to20, D20to25, D25to30, D30to35,
          D35to40, Dgt40)
-
 
 
 colSums(Initial_load, na.rm=TRUE)
@@ -227,7 +236,7 @@ Access_data |>
     total_count = sum(Count)
   )
 
-# Passed this test
+
 
 #-------------------------------------------------------------------------------
 
