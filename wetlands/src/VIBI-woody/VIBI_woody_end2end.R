@@ -2,13 +2,14 @@
 
 ################################################################################
 #
-#  Survey123_VIBI_woody_final.R
+#  VIBI_woody_end2end.R
 #
-#  Gareth Rowell, 2/16/2024
+#  Gareth Rowell, 2/28/2024
 #
-#  This script converts csv files exported from Survey123 VIBI woody
-#  data to create a file that can be loaded into MS Access and directly
-#  appended to the tbl_VIBI_woody table.
+#  This end2end test compares the original 2023 data against
+#  the exported table tbl_VIBI_woody after its been appended with the 
+#  2023 data.
+#
 #
 ################################################################################
 
@@ -17,7 +18,7 @@ library(tidyverse)
 #setwd("../HTLN-Data-Capture-Scripts/wetlands/src")
 
 
-#setwd("./src")
+#setwd("./VIBI-woody")
 
 #################
 #
@@ -64,13 +65,31 @@ glimpse(load_file3)
 
 Access_data <- bind_rows(load_file1,load_file2)
 
-glimpse(Access_data)
+#glimpse(Access_data)
+
+view(Access_data)
 
 Access_data <- bind_rows(Access_data,load_file3)
 
-load_file <- Access_data
+# load_file <- Access_data
 
-glimpse(Access_data)
+#glimpse(Access_data)
+
+view(Access_data)
+
+# Test for duplicates <<<<<<<<<<<<<<<<<<<<<<<<<<
+# The duplicates show up in the September spreadsheet (load_file3)!!
+# Talk with Sonia, can we yank the duplicates from the loadfiles??
+
+
+dup_test <- Access_data |>
+  count(
+        WoodyModule, WoodySpecies, EditDate, WoodySiteName,
+        ShrubClump, D0to1, D1to2_5, D2_5to5, D5to10, D10to15,
+        D15to20, D20to25,D25to30, D30to35, D35to40, Dgt40
+        ) |>
+  filter(n > 1) |>
+  view()
 
 
 # record count is 1731. 
@@ -239,11 +258,13 @@ Access_data |>
   )
 
 
+#################
+#
+# Step 9 - Substitute NA with -9999 in Count data 
+#
+#
+#################
 
-#-------------------------------------------------------------------------------
-
-# Substitute NA with -9999 in Count data 
-  
 glimpse(Access_data)
 
 Access_data$Count <- Access_data$Count |> replace_na(-9999)
@@ -258,7 +279,22 @@ Access_data <- Access_data |>
 glimpse(Access_data)
 view(Access_data)
 
-writexl::write_xlsx(Access_data, "Load_VIBI_woody_2023.xlsx")
+# writexl::write_xlsx(Access_data, "Load_VIBI_woody_2023.xlsx")
+
+#------------------------------------------------------------------------------
+# End2End test begins here
+
+# test for duplicates in the Access data
+# Woodys wont be unique because there could be more than one count
+# of a species....
+
+Access_data |>
+  count(EventID, FeatureID, Module_No, WoodySpecies, Diam_Code, Count) |>
+  filter(n > 1)
+
+
+
+
 
 
 
