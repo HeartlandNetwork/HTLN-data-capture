@@ -1,7 +1,17 @@
 
 #setwd("./HTLN-Data-Capture-Scripts/wetlands/src/VIBI-BigTrees")
 
-
+################################################################################
+#
+#  Survey123_VIBI_Big_trees_final.R
+#
+#  Gareth Rowell, 2/29/2024
+#
+#  This script converts csv files exported from Survey123 VIBI woody big tree
+#  data to create a file that can be loaded into MS Access and directly
+#  appended to the tbl_BigTrees table.
+#
+################################################################################
 
 library(tidyverse)
 
@@ -10,7 +20,7 @@ library(tidyverse)
 # Step 1 - load the Survey123 data
 #          species codes were only used in CUVA_VIBI_woody1.csv
 #          join to create WoodySpecies
-
+#
 ##########
 
 # load the Survey123 data
@@ -110,9 +120,28 @@ Access_data
 
 Access_data <- Access_data |>
   mutate( EventID = str_c( 'CUVAWetlnd', EditDate)) |>
-  mutate(EventID = str_replace_all(EventID, "-", ""))
+  mutate(EventID = str_replace_all(EventID, "-", "")) |>
+  mutate(NumMonth = str_sub(EventID, start = 15L, end = -3L)) 
 
 glimpse(Access_data)
+
+#################
+#
+# Step 4b - Replace numeric month with text month abbreviation
+#
+#################
+
+Months_LUT <- read_csv("Months_LUT.csv")
+
+Access_data <- Access_data |>
+  left_join(Months_LUT, join_by(NumMonth))
+
+Access_data <- Access_data |>
+  mutate(EventID_left = str_sub(EventID, start = 1L, end = -5)) |>
+  mutate(EventID_right = str_sub(EventID, start = 17, end = -1)) 
+
+Access_data <- Access_data |>
+  mutate(EventID = str_c(EventID_left, TxtMonth, EventID_right))
 
 
 ##########
@@ -190,4 +219,4 @@ glimpse(Access_data)
 
 view(Access_data)
 
-writexl::write_xlsx(Access_data, "Load_VIBI_BigTrees.xlsx")
+writexl::write_xlsx(Access_data, "Load_VIBI_BigTrees_2023.xlsx")
