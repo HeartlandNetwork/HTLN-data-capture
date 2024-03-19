@@ -1,5 +1,5 @@
 
-#setwd("./HTLN-Data-Capture-Scripts/wetlands/src/VIBI-BigTrees")
+#setwd("./VIBI-BigTrees")
 
 ################################################################################
 #
@@ -18,54 +18,36 @@ library(tidyverse)
 ##########
 #
 # Step 1 - load the Survey123 data
-#          species codes were only used in CUVA_VIBI_woody1.csv
-#          join to create WoodySpecies
+#          sv
+#          
 #
 ##########
 
 # load the Survey123 data
 #
 #
-# species codes were only used in CUVA_VIBI_woody1.csv
-# join to create WoodySpecies
+
 
 load_file1 <- read_csv("CUVA_VIBI_woody1.csv")
 problems(load_file1)
 
 glimpse(load_file1)
 
-WoodySpecies_LUT <- read_csv("WoodySpecies_LUT2.csv")
-problems(WoodySpecies_LUT)
 
-glimpse(WoodySpecies_LUT)
-
-load_file1 <- load_file1 |>
-  left_join(WoodySpecies_LUT, join_by(SpeciesCode))
-
-glimpse(load_file1)
-
-view(load_file1)
-
-##view(load_file1)
-
-# check for NAs in WoodySpecies 
-
-
-load_file1 |>
-  select(SpeciesCode, WoodySpecies) |>
-  filter(is.na(WoodySpecies)) |>
-  distinct()
+# view(load_file1)
 
 
 load_file2 <- read_csv("CUVA_VIBI_woody2.csv")
 problems(load_file2)
 
-view(load_file2)
+glimpse(load_file2)
+
+#view(load_file2)
 
 load_file3 <- read_csv("CUVA_VIBI_woody3.csv")
 problems(load_file3)
 
-view(load_file3)
+#view(load_file3)
 
 glimpse(load_file1)
 glimpse(load_file2)
@@ -81,6 +63,17 @@ load_file <- Access_data
 
 glimpse(Access_data)
 
+# deal with species codes in all three load files
+
+WoodySpecies_LUT <- read_csv("WoodySpecies_LUT2.csv")
+problems(WoodySpecies_LUT)
+
+glimpse(WoodySpecies_LUT)
+
+load_file1 <- load_file1 |>
+  left_join(WoodySpecies_LUT, join_by(SpeciesCode))
+
+glimpse(load_file1)
 
 ##########
 #
@@ -94,6 +87,43 @@ Access_data <- Access_data |>
 	       Dgt40_1, Dgt40_2, Dgt40_3, Dgt40_4, Dgt40_5)
 
  glimpse(Access_data)
+ 
+ # n = 1731
+ 
+ ##########
+ #
+ # Step 2b - check for duplicates
+ #
+ ##########
+ 
+# test for dups
+ 
+Access_data |> 
+   group_by(WoodyModule, WoodySpecies, EditDate, WoodySiteName, 
+            Dgt40_1, Dgt40_2, Dgt40_3, Dgt40_4, Dgt40_5) |> 
+   summarize(
+     n = n(),
+   ) |> 
+   filter(n > 1)
+ 
+# Remove dups with distinct() 
+ 
+Access_data <- Access_data |>
+   distinct(WoodyModule, WoodySpecies, EditDate, WoodySiteName, 
+            Dgt40_1, Dgt40_2, Dgt40_3, Dgt40_4, Dgt40_5)
+Access_data
+
+# test for dups
+
+ 
+ Access_data |> 
+   group_by(WoodyModule, WoodySpecies, EditDate, WoodySiteName, 
+            Dgt40_1, Dgt40_2, Dgt40_3, Dgt40_4, Dgt40_5) |> 
+   summarize(
+     n = n(),
+   ) |> 
+   filter(n > 1)
+ 
 
 
 
@@ -133,6 +163,8 @@ glimpse(Access_data)
 
 Months_LUT <- read_csv("Months_LUT.csv")
 
+glimpse(Months_LUT)
+
 Access_data <- Access_data |>
   left_join(Months_LUT, join_by(NumMonth))
 
@@ -143,6 +175,7 @@ Access_data <- Access_data |>
 Access_data <- Access_data |>
   mutate(EventID = str_c(EventID_left, TxtMonth, EventID_right))
 
+glimpse(Access_data)
 
 ##########
 #
@@ -163,21 +196,22 @@ glimpse(Access_data)
 
 ##########
 #
-# Step 6 - Load species look-up table and join to data. 
+# Skip this step - already done in Step1
+#   Step 6 - Load species look-up table and join to data. 
 #   WARNING - Many-to-many indicates multiple species
 #   for a given species code. see scripts:
 #   WoodySpecies_cleanup.R
 #   
 ##########
 
-WoodySpecies_LUT <- read_csv("WoodySpecies_LUT2.csv")
+#WoodySpecies_LUT <- read_csv("WoodySpecies_LUT2.csv")
 
-glimpse(WoodySpecies_LUT)
+#glimpse(WoodySpecies_LUT)
 
-Access_data <- Access_data |>
-	  left_join(WoodySpecies_LUT, join_by(WoodySpecies))
+#Access_data <- Access_data |>
+	  #left_join(WoodySpecies_LUT, join_by(WoodySpecies))
 
-glimpse(Access_data)
+#glimpse(Access_data)
 
 
 ##########
@@ -217,6 +251,6 @@ Access_data <- Access_data |>
 
 glimpse(Access_data)
 
-view(Access_data)
+#view(Access_data)
 
 writexl::write_xlsx(Access_data, "Load_VIBI_BigTrees_2023.xlsx")
