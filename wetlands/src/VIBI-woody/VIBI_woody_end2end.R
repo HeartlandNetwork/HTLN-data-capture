@@ -13,17 +13,32 @@
 #
 ################################################################################
 
+
+
+################################################################################
+#
+#  Survey123_VIBI_woody_final.R
+#
+#  Gareth Rowell, 2/16/2024
+#
+#  This script converts csv files exported from Survey123 VIBI woody
+#  data to create a file that can be loaded into MS Access and directly
+#  appended to the tbl_VIBI_woody table.
+#
+################################################################################
+
 library(tidyverse)
 
-#setwd("../HTLN-Data-Capture-Scripts/wetlands/src")
-
-
 #setwd("./VIBI-woody")
+
+
+#setwd("./src")
 
 #################
 #
 # Step 1 - load spreadsheet csv files and appended them
 # Note - species codes were only used in CUVA_VIBI_woody1.csv
+# and also CUVA_VIBI_woody3.csv
 # They were joined to WoodySpecies_LUT2.csv to create WoodySpecies
 #
 #################
@@ -44,7 +59,7 @@ glimpse(load_file1)
 
 glimpse(WoodySpecies_LUT)
 
-view(load_file1)
+# view(load_file1)
 
 # check for NAs in WoodySpecies 
 
@@ -54,49 +69,39 @@ load_file1 |>
   filter(is.na(WoodySpecies)) |>
   distinct()
 
+
 load_file2 <- read_csv("CUVA_VIBI_woody2.csv")
 problems(load_file2)
+
 load_file3 <- read_csv("CUVA_VIBI_woody3.csv")
 problems(load_file3)
+
+load_file3 <- load_file3 |>
+  left_join(WoodySpecies_LUT, join_by(SpeciesCode))
+
+glimpse(load_file3)
+
+load_file4 <- read_csv("CUVA_VIBI_woody4.csv")
+problems(load_file4)
 
 glimpse(load_file1)
 glimpse(load_file2)
 glimpse(load_file3)
+glimpse(load_file4)
 
 Access_data <- bind_rows(load_file1,load_file2)
 
-#glimpse(Access_data)
-
-view(Access_data)
+glimpse(Access_data)
 
 Access_data <- bind_rows(Access_data,load_file3)
 
-# load_file <- Access_data
+glimpse(Access_data)
 
-#glimpse(Access_data)
+Access_data <- bind_rows(Access_data,load_file4)
 
-view(Access_data)
+glimpse(Access_data)
 
-# Test for duplicates <<<<<<<<<<<<<<<<<<<<<<<<<<
-# The duplicates show up in the September spreadsheet (load_file3)!!
-# Talk with Sonia, can we yank the duplicates from the loadfiles??
-
-
-dup_test <- Access_data |>
-  count(
-        WoodyModule, WoodySpecies, EditDate, WoodySiteName,
-        ShrubClump, D0to1, D1to2_5, D2_5to5, D5to10, D10to15,
-        D15to20, D20to25,D25to30, D30to35, D35to40, Dgt40
-        ) |>
-  filter(n > 1) |>
-  view()
-
-
-# record count is 1731. 
-
-# From the spreadsheets: 304 + 280 + 1147 = 1731
-
-304 + 280 + 1147
+load_file <- Access_data # for normalization test in step 8
 
 #################
 #
@@ -106,9 +111,9 @@ dup_test <- Access_data |>
 
 
 Access_data <- Access_data |>
-	select(WoodyModule, WoodySpecies, EditDate, WoodySiteName, ShrubClump, D0to1,
-	       D1to2_5, D2_5to5, D5to10, D10to15, D15to20, D20to25, D25to30, D30to35,
-	       D35to40, Dgt40, Dgt40_1, Dgt40_2, Dgt40_3, Dgt40_4, Dgt40_5)
+  select(WoodyModule, WoodySpecies, EditDate, WoodySiteName, ShrubClump, D0to1,
+         D1to2_5, D2_5to5, D5to10, D10to15, D15to20, D20to25, D25to30, D30to35,
+         D35to40, Dgt40, Dgt40_1, Dgt40_2, Dgt40_3, Dgt40_4, Dgt40_5)
 
 Access_data <- Access_data |>
   mutate( FeatureID = WoodySiteName) |>
@@ -139,6 +144,8 @@ Access_data$Col12 <- Access_data$Dgt40
 
 glimpse(Access_data)
 
+
+
 #################
 #
 # Step 4 - Generate EventID from EditDate
@@ -147,9 +154,9 @@ glimpse(Access_data)
 
 
 Access_data <- Access_data |>
-	  mutate( EventID = str_c( 'CUVAWetlnd', EditDate)) |>
-	  mutate(EventID = str_replace_all(EventID, "-", "")) |>
-    mutate(NumMonth = str_sub(EventID, start = 15L, end = -3L)) 
+  mutate( EventID = str_c( 'CUVAWetlnd', EditDate)) |>
+  mutate(EventID = str_replace_all(EventID, "-", "")) |>
+  mutate(NumMonth = str_sub(EventID, start = 15L, end = -3L)) 
 
 
 glimpse(Access_data)
@@ -197,20 +204,20 @@ glimpse(Access_data)
 
 
 Access_data <- Access_data |>
-	select(EventID, LocationID, FeatureID, Module_No, WoodySpecies, 
-	       EditDate, WoodySiteName, Col1, Col2, Col3, Col4, Col5,
-	       Col6, Col7, Col8, Col9, Col10, Col11, Col12)
+  select(EventID, LocationID, FeatureID, Module_No, WoodySpecies, 
+         EditDate, WoodySiteName, Col1, Col2, Col3, Col4, Col5,
+         Col6, Col7, Col8, Col9, Col10, Col11, Col12)
 
 glimpse(Access_data)
 # pivot longer (normalize)
 
 Access_data <- Access_data |> 
-	  pivot_longer( 
-	           cols = starts_with("Col"),
-			       names_to = "DiamID",
-			         values_to = "Count",
-			         values_drop_na = TRUE
-			       )
+  pivot_longer( 
+    cols = starts_with("Col"),
+    names_to = "DiamID",
+    values_to = "Count",
+    values_drop_na = TRUE
+  )
 
 glimpse(Access_data)
 
@@ -258,12 +265,10 @@ Access_data |>
   )
 
 
-#################
-#
-# Step 9 - Substitute NA with -9999 in Count data 
-#
-#
-#################
+
+#-------------------------------------------------------------------------------
+
+# Substitute NA with -9999 in Count data 
 
 glimpse(Access_data)
 
@@ -279,20 +284,22 @@ Access_data <- Access_data |>
 glimpse(Access_data)
 view(Access_data)
 
-# writexl::write_xlsx(Access_data, "Load_VIBI_woody_2023.xlsx")
+
+
+
+
+
 
 #------------------------------------------------------------------------------
 # End2End test begins here
 
-# test for duplicates in the Access data
-# Woodys wont be unique because there could be more than one count
-# of a species....
+# need to test for duplicate records
 
 Access_data |>
   count(EventID, FeatureID, Module_No, WoodySpecies, Diam_Code, Count) |>
   filter(n > 1)
 
-
+# test for presence of -9999 in anything
 
 
 
