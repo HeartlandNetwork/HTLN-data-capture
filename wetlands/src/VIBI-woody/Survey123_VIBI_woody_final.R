@@ -23,6 +23,7 @@ library(tidyverse)
 #
 # Step 1 - load spreadsheet csv files and appended them
 # Note - species codes were only used in CUVA_VIBI_woody1.csv
+# and also CUVA_VIBI_woody3.csv
 # They were joined to WoodySpecies_LUT2.csv to create WoodySpecies
 #
 #################
@@ -43,7 +44,7 @@ glimpse(load_file1)
 
 glimpse(WoodySpecies_LUT)
 
-view(load_file1)
+# view(load_file1)
 
 # check for NAs in WoodySpecies 
 
@@ -53,14 +54,25 @@ load_file1 |>
   filter(is.na(WoodySpecies)) |>
   distinct()
 
+
 load_file2 <- read_csv("CUVA_VIBI_woody2.csv")
 problems(load_file2)
+
 load_file3 <- read_csv("CUVA_VIBI_woody3.csv")
 problems(load_file3)
+
+load_file3 <- load_file3 |>
+  left_join(WoodySpecies_LUT, join_by(SpeciesCode))
+
+glimpse(load_file3)
+
+load_file4 <- read_csv("CUVA_VIBI_woody4.csv")
+problems(load_file4)
 
 glimpse(load_file1)
 glimpse(load_file2)
 glimpse(load_file3)
+glimpse(load_file4)
 
 Access_data <- bind_rows(load_file1,load_file2)
 
@@ -68,16 +80,13 @@ glimpse(Access_data)
 
 Access_data <- bind_rows(Access_data,load_file3)
 
-load_file <- Access_data
+glimpse(Access_data)
+
+Access_data <- bind_rows(Access_data,load_file4)
 
 glimpse(Access_data)
 
-
-# record count is 1731. 
-
-# From the spreadsheets: 304 + 280 + 1147 = 1731
-
-304 + 280 + 1147
+load_file <- Access_data # for normalization test in step 8
 
 #################
 #
@@ -119,6 +128,8 @@ Access_data$Col11 <- Access_data$D35to40
 Access_data$Col12 <- Access_data$Dgt40 
 
 glimpse(Access_data)
+
+
 
 #################
 #
@@ -240,7 +251,14 @@ Access_data |>
 
 
 
-#-------------------------------------------------------------------------------
+
+#################
+#
+# Step 9a - Substitute NA with -9999 in CoverClass and CoverClassAll
+#  Then remove those with -9999 in CoverClass
+# 
+#
+#################
 
 # Substitute NA with -9999 in Count data 
   
@@ -257,6 +275,67 @@ Access_data <- Access_data |>
 
 glimpse(Access_data)
 view(Access_data)
+
+
+
+Access_data$CoverClass <- Access_data$CoverClass |> replace_na(-9999)
+
+Access_data$CoverClassAll <- Access_data$CoverClassAll |> replace_na(-9999)
+
+Access_data |>
+  filter(CoverClass == -9999)
+
+Access_data <- Access_data |>
+  filter(CoverClass != -9999)
+
+# then test
+
+Access_data |>
+  filter(CoverClass == -9999)
+
+
+##########
+#
+# Step 9b - check for duplicates
+#
+##########
+
+
+
+# test for dups
+
+
+Access_data |>
+  count(Species, Comments, Module, CoverClass_LT_6m, CoverClassAll,
+        EditDate, HerbSiteName, FeatureID, CoverClass
+  ) |>
+  filter(n > 1)
+
+# Remove dups with distinct() 
+
+Access_data <- Access_data |>
+  distinct(Species, Comments, Module, CoverClass_LT_6m, CoverClassAll,
+           EditDate, HerbSiteName, FeatureID, CoverClass
+  )
+Access_data
+
+# test for dups
+
+
+Access_data |>
+  count(Species, Comments, Module, CoverClass_LT_6m, CoverClassAll,
+        EditDate, HerbSiteName, FeatureID, CoverClass
+  ) |>
+  filter(n > 1)
+
+
+##########
+#
+# Step 10 - Write load file
+
+#
+##########
+
 
 writexl::write_xlsx(Access_data, "Load_VIBI_woody_2023.xlsx")
 
