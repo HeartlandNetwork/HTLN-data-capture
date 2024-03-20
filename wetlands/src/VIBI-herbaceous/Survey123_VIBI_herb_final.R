@@ -14,7 +14,7 @@
 
 library(tidyverse)
 
-#setwd("./")
+#setwd("./VIBI-herbaceous")
 
 
 #################
@@ -30,9 +30,11 @@ load_file1 <- read_csv("CUVA_VIBI_herb1.csv")
 load_file2 <- read_csv("CUVA_VIBI_herb2.csv")
 load_file3 <- read_csv("CUVA_VIBI_herb3.csv")
 
+
 glimpse(load_file1)
 glimpse(load_file2)
 glimpse(load_file3)
+
 
 Access_data <- bind_rows(load_file1,load_file2)
 
@@ -42,7 +44,7 @@ Access_data <- bind_rows(Access_data,load_file3)
 
 glimpse(Access_data)
 
-1017 + 1281 + 1780
+
 
 #################
 #
@@ -52,7 +54,7 @@ glimpse(Access_data)
 
 
 Access_data <- Access_data |> 
-  select(Species, SpeciesComments, Module, CoverClass_LT_6m, 
+  select(Species, Comments, Module, CoverClass_LT_6m, 
          CoverClassAll, EditDate, HerbSiteName) |>
   mutate( 
     FeatureID = HerbSiteName,
@@ -129,7 +131,7 @@ Access_data <- Access_data |>
 # clean up columns
 
 Access_data <- Access_data |>
-  select(EventID, FeatureID, LocationID, Species, SpeciesComments, Module,
+  select(EventID, FeatureID, LocationID, Species, Comments, Module,
          CoverClass, CoverClassAll, EditDate )
 
 writexl::write_xlsx(Access_data, "Load_VIBI_herb_2023.xlsx")
