@@ -15,24 +15,13 @@
 
 
 
-################################################################################
-#
-#  Survey123_VIBI_woody_final.R
-#
-#  Gareth Rowell, 2/16/2024
-#
-#  This script converts csv files exported from Survey123 VIBI woody
-#  data to create a file that can be loaded into MS Access and directly
-#  appended to the tbl_VIBI_woody table.
-#
-################################################################################
 
 library(tidyverse)
 
+#setwd("../HTLN-Data-Capture-Scripts/wetlands/src")
+
+
 #setwd("./VIBI-woody")
-
-
-#setwd("./src")
 
 #################
 #
@@ -266,24 +255,77 @@ Access_data |>
 
 
 
-#-------------------------------------------------------------------------------
 
-# Substitute NA with -9999 in Count data 
+#################
+#
+# Step 9a - Substitute NA with -9999 in CoverClass and CoverClassAll
+#  Then remove those with -9999 in CoverClass
+# 
+#
+#################
+
 
 glimpse(Access_data)
 
 Access_data$Count <- Access_data$Count |> replace_na(-9999)
 
-
+Access_data |>
+  filter(Count == -9999)
 
 Access_data <- Access_data |>
-  select( EventID, LocationID, FeatureID, Module_No, 
-          WoodySpecies, Diam_Code, Count
-  )
+  filter(Count != -9999)
 
-glimpse(Access_data)
-view(Access_data)
+# then test
 
+Access_data |>
+  filter(Count == -9999)
+
+
+##########
+#
+# Step 9b - check for duplicates
+#
+##########
+
+
+
+# test for dups
+
+
+Access_data |>
+  count(EventID, LocationID, FeatureID, Module_No, WoodySpecies, DiamID,
+        Count, Diam_Code, Diam_Desc) |>
+  filter(n > 1)
+
+# Remove dups with distinct() 
+
+Access_data <- Access_data |>
+  distinct(EventID, LocationID, FeatureID, Module_No, WoodySpecies, DiamID,
+           Count, Diam_Code, Diam_Desc) 
+Access_data
+
+# test for dups
+
+
+Access_data |>
+  count(EventID, LocationID, FeatureID, Module_No, WoodySpecies, DiamID,
+        Count, Diam_Code, Diam_Desc) |>
+  filter(n > 1)
+
+
+##########
+#
+# Step 10 - Write load file
+
+#
+##########
+
+Access_data <- Access_data |>
+  select(EventID, LocationID, FeatureID, Module_No, WoodySpecies, Diam_Code, 
+         Count)
+
+
+# writexl::write_xlsx(Access_data, "Load_VIBI_woody_2023.xlsx")
 
 
 
@@ -301,8 +343,41 @@ Access_data |>
 
 # test for presence of -9999 in anything
 
+Access_data |>
+  filter(Count == -9999)
 
 
+end2end <- read_csv("qrye2e_VIBI_woody.csv")
+
+problems(end2end)
+
+glimpse(end2end)
+
+glimpse(Access_data)
 
 
+# matching column names
+
+Access_data <- Access_data |>
+  mutate(
+    DiamID = Diam_Code,
+    Scientific_Name = WoodySpecies
+  )
+
+Access_data <- Access_data |>
+  select(EventID, LocationID, FeatureID, Module_No, Scientific_Name, DiamID, 
+         Count)
+
+# testing for PK - unique no-nulls
+
+Access_data |>
+  count(EventID, LocationID, Module_No, Scientific_Name, DiamID, Count) |>
+  filter(n > 1)
+
+end2enddups <- end2end |>
+  count(EventID, LocationID, Module_No, Scientific_Name, DiamID, Count) |>
+  filter(n > 1) |>
+  print(n = 45)
+
+writexl::write_xlsx(end2enddups, "End2End_Dups.xlsx")
 
