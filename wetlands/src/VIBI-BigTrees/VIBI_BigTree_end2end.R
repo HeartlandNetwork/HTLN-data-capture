@@ -1,15 +1,15 @@
 
-#setwd("./VIBI-BigTrees")
 
 ################################################################################
 #
-#  Survey123_VIBI_Big_trees_final.R
+#  VIBI_BigTree_end2end.R
 #
-#  Gareth Rowell, 2/29/2024
+#  Gareth Rowell, 2/28/2024
 #
-#  This script converts csv files exported from Survey123 VIBI woody big tree
-#  data to create a file that can be loaded into MS Access and directly
-#  appended to the tbl_BigTrees table.
+#  This end2end test compares the original 2023 data against
+#  the exported table tbl_BigTrees after its been appended with the 
+#  2023 data.
+#
 #
 ################################################################################
 
@@ -248,4 +248,59 @@ Access_data |>
 
 #view(Access_data)
 
-writexl::write_xlsx(Access_data, "Load_VIBI_BigTrees_2023.xlsx")
+#writexl::write_xlsx(Access_data, "Load_VIBI_BigTrees_2023.xlsx")
+
+
+
+
+#------------------------------------------------------------------------------
+# End2End test begins here
+
+# need to test for duplicate records
+
+Access_data |>
+  count(EventID, LocationID, Module_No, Scientific_Name, DBH) |>
+  filter(n > 1)
+
+# test for presence of -9999 in anything
+
+Access_data |>
+  filter(DBH == -9999)
+
+
+end2end <- read_csv("qrye2e_bigtrees.csv")
+
+problems(end2end)
+
+glimpse(end2end)
+
+glimpse(Access_data)
+
+
+# matching column names
+
+Access_data <- Access_data |>
+  mutate(
+    ModNo = Module_No
+  )
+
+Access_data <- Access_data |>
+  select(EventID, LocationID, ModNo, Scientific_Name, DBH) 
+
+# testing for PK - unique no-nulls
+
+Access_data |>
+  count(EventID, LocationID, ModNo, Scientific_Name, DBH)  |>
+  filter(n > 1)
+
+end2end |>
+  count(EventID, LocationID, ModNo, Scientific_Name, DBH) |>
+  filter(n > 1)
+
+end2enddups <- end2end |>
+  count(EventID, LocationID, Module_No, Scientific_Name, DiamID, Count) |>
+  filter(n > 1) |>
+  print(n = 45)
+
+writexl::write_xlsx(end2enddups, "End2End_Dups.xlsx")
+

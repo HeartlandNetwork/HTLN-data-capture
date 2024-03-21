@@ -17,7 +17,7 @@ library(tidyverse)
 #setwd("../HTLN-Data-Capture-Scripts/wetlands/src")
 
 
-#setwd("./src")
+#setwd("./VIBI-woody")
 
 #################
 #
@@ -260,38 +260,21 @@ Access_data |>
 #
 #################
 
-# Substitute NA with -9999 in Count data 
   
 glimpse(Access_data)
 
 Access_data$Count <- Access_data$Count |> replace_na(-9999)
 
-
-
-Access_data <- Access_data |>
-  select( EventID, LocationID, FeatureID, Module_No, 
-          WoodySpecies, Diam_Code, Count
-  )
-
-glimpse(Access_data)
-view(Access_data)
-
-
-
-Access_data$CoverClass <- Access_data$CoverClass |> replace_na(-9999)
-
-Access_data$CoverClassAll <- Access_data$CoverClassAll |> replace_na(-9999)
-
 Access_data |>
-  filter(CoverClass == -9999)
+  filter(Count == -9999)
 
 Access_data <- Access_data |>
-  filter(CoverClass != -9999)
+  filter(Count != -9999)
 
 # then test
 
 Access_data |>
-  filter(CoverClass == -9999)
+  filter(Count == -9999)
 
 
 ##########
@@ -306,26 +289,23 @@ Access_data |>
 
 
 Access_data |>
-  count(Species, Comments, Module, CoverClass_LT_6m, CoverClassAll,
-        EditDate, HerbSiteName, FeatureID, CoverClass
-  ) |>
+  count(EventID, LocationID, FeatureID, Module_No, WoodySpecies, DiamID,
+        Count, Diam_Code, Diam_Desc) |>
   filter(n > 1)
 
 # Remove dups with distinct() 
 
 Access_data <- Access_data |>
-  distinct(Species, Comments, Module, CoverClass_LT_6m, CoverClassAll,
-           EditDate, HerbSiteName, FeatureID, CoverClass
-  )
+  distinct(EventID, LocationID, FeatureID, Module_No, WoodySpecies, DiamID,
+           Count, Diam_Code, Diam_Desc) 
 Access_data
 
 # test for dups
 
 
 Access_data |>
-  count(Species, Comments, Module, CoverClass_LT_6m, CoverClassAll,
-        EditDate, HerbSiteName, FeatureID, CoverClass
-  ) |>
+  count(EventID, LocationID, FeatureID, Module_No, WoodySpecies, DiamID,
+        Count, Diam_Code, Diam_Desc) |>
   filter(n > 1)
 
 
@@ -335,6 +315,10 @@ Access_data |>
 
 #
 ##########
+
+Access_data <- Access_data |>
+  select(EventID, LocationID, FeatureID, Module_No, WoodySpecies, Diam_Code, 
+        Count)
 
 
 writexl::write_xlsx(Access_data, "Load_VIBI_woody_2023.xlsx")
