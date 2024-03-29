@@ -182,6 +182,8 @@ glimpse(Access_data)
 
 # Rename columns using DiamID values for pivot_longer
 
+loadfile <- Access_data # "before" to validate pivot_longer
+
 Access_data$Tree1 <- Access_data$Dgt40_1 
 Access_data$Tree2 <- Access_data$Dgt40_2 
 Access_data$Tree3 <- Access_data$Dgt40_3
@@ -209,6 +211,35 @@ Access_data <- Access_data |>
   )
 
 glimpse(Access_data)
+
+#################
+#
+# Step 6b - Validate normalization and join using
+#          Sum of counts in initial load file
+#          against total_counts for each diameter 
+#          in final version
+#
+#################
+
+glimpse(loadfile)
+glimpse(Access_data)
+
+
+Initial_load <- loadfile |>
+  select(Dgt40_1, Dgt40_2, Dgt40_3, Dgt40_4, Dgt40_5)
+
+
+colSums(Initial_load, na.rm=TRUE)
+
+
+Access_data |>
+  group_by(TreeName) |> 
+  summarize(
+    DBH_sum = sum(round(DBH,2))
+  )
+
+# precision was dropped by 0.1
+
 
 ##########
 #
@@ -256,6 +287,18 @@ Access_data |>
 #------------------------------------------------------------------------------
 # End2End test begins here
 
+
+
+end2end <- read_csv("qrye2e_bigtrees.csv")
+
+problems(end2end)
+
+glimpse(end2end)
+
+glimpse(Access_data)
+
+
+
 # need to test for duplicate records
 
 Access_data |>
@@ -267,14 +310,6 @@ Access_data |>
 Access_data |>
   filter(DBH == -9999)
 
-
-end2end <- read_csv("qrye2e_bigtrees.csv")
-
-problems(end2end)
-
-glimpse(end2end)
-
-glimpse(Access_data)
 
 
 # matching column names
