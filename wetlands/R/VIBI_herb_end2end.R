@@ -4,7 +4,7 @@
 #  VIBI_herb_end2end.R
 #
 #  Gareth Rowell, 2/16/2024
-
+#
 #  This end2end test compares the original 2023 data against
 #  the exported table tbl_VIBI_herb after its been appended with the 
 #  2023 data.
@@ -15,7 +15,7 @@
 
 library(tidyverse)
 
-#setwd("./VIBI-herbaceous")
+#setwd("./herb")
 
 
 #################
@@ -68,7 +68,7 @@ glimpse(Access_data)
 
 #################
 #
-# Step 3 - Substitute NA with -9999 in CoverClass and CoverClassAll
+# Step 3a - Substitute NA with -9999 in CoverClass and CoverClassAll
 #  Then remove those with -9999 in CoverClass
 #
 #################
@@ -161,6 +161,11 @@ Access_data <- Access_data |>
 #
 #################
 
+# First test for NA's in FeatureID column
+
+subset(Access_data,is.na(FeatureID))
+
+# there are no NAs in FeatureID column
 
 Locations_LUT <- read_csv("tbl_Locations_20230316.csv")
 
@@ -168,6 +173,27 @@ glimpse(Locations_LUT)
 
 Access_data <- Access_data |>
   left_join(Locations_LUT, join_by(FeatureID))
+
+# test for NA's in LocationID
+
+df <- subset(Access_data,is.na(LocationID))
+
+glimpse(df)
+
+# which FeatureIDs aren't matching up
+
+df <- df |>
+  distinct(LocationID, FeatureID)
+
+df
+
+
+Access_data <- Access_data |>
+  filter(!is.na(LocationID))
+
+# going to drop these NAs for now
+# resolve them after they are added to the 
+# locations table in HTLNWetlands db
 
 
 #################
@@ -179,10 +205,10 @@ Access_data <- Access_data |>
 # clean up columns
 
 Access_data <- Access_data |>
-  select(EventID, FeatureID, LocationID, Species, Comments, Module,
+  select(EventID, LocationID, FeatureID, Species, Comments, Module,
          CoverClass, CoverClassAll, EditDate )
 
-# writexl::write_xlsx(Access_data, "Load_VIBI_herb_2023.xlsx")
+writexl::write_xlsx(Access_data, "Load_VIBI_herb_2023.xlsx")
 
 
 
@@ -190,27 +216,12 @@ Access_data <- Access_data |>
 #------------------------------------------------------------------------------
 # End2End test begins here
 
-# test for duplicates in the Access data
-
-Access_data |>
-  count(EventID, FeatureID, Species, Module, CoverClass) |>
-  filter(n > 1)
-
-# Need to resolve these duplicates with Sonia.
-
-# Also, there's a bunch of null values in the CoverClass variable
-
-Access_data |>
-  filter(CoverClass == -9999)
-
-
 end2end <- read_csv("qrye2e_VIBI_herb.csv")
-  
-problems(end2end)
 
-glimpse(end2end)
 
 glimpse(Access_data)
+
+glimpse(end2end)
 
 # matching column names
 
@@ -220,6 +231,79 @@ Access_data <- Access_data |>
     CovCode = CoverClass
   )
 
+# select only shared columns
+
+Access_data <- Access_data |>
+  select(EventID, LocationID, FeatureID, Species, ModNo, CovCode, Comments
+  )
+
+glimpse(Access_data)
+
+glimpse(end2end)
+
+# removing voucherno and comments from end2end
+
+end2end <- end2end |>
+  select(EventID, LocationID, FeatureID, Species, ModNo, CovCode
+  )
+
+glimpse(Access_data)
+
+glimpse(end2end)
+
+# record counts match
+
+
+Access_data |>
+  count(EventID, LocationID, FeatureID, Species, ModNo, CovCode) |>
+  filter(n > 1)
+
+
+# Duplicates in Access_data caused by Carex sp.1, which should have been 
+# Carex sp. 1 and sp. 2 just going to remove these to complete end2end testing
+
+Access_data <- Access_data |>
+  distinct(EventID, LocationID, FeatureID, Species, ModNo, CovCode) 
+
+
+Access_data |>
+  count(EventID, LocationID, FeatureID, Species, ModNo, CovCode) |>
+  filter(n > 1)
+
+glimpse(Access_data)
+
+glimpse(end2end)
+
+# return to record counts issue 
+# Access_data n = 3994
+# end2end n = 3835
+
+# what are the record differences between these two dataframes
+
+my_columns = c('EventID', 'LocationID', 'FeatureID', 'Species', 'ModNo', 'CovCode')
+
+view(anti_join(Access_data, end2end, by=my_columns))
+
+# all the extract Access_data records have null LocationIDs.
+# do these show up in Access 
+
+# yes - so need to remove them and re-import
+
+# what about stuff in the end2end that wasn't in the original loadfile
+
+df <- anti_join(end2end, Access_data, by=my_columns)
+
+df
+
+# there are no records. So, need to filter out the N/A locations in the original
+# Access_data / load file and repeat this process.
+
+
+flights2 |> 
+  anti_join(airports, join_by(dest == faa)) |> 
+  distinct(dest) 
+
+anti_join(df1, df2, by=c('team', 'position'))
 
 # Selecting the columns that matter
 

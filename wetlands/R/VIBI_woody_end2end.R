@@ -335,6 +335,50 @@ Access_data <- Access_data |>
 #------------------------------------------------------------------------------
 # End2End test begins here
 
+end2end <- read_csv("qrye2e_VIBI_woody.csv")
+
+
+glimpse(Access_data)
+
+glimpse(end2end)
+
+
+# matching column names
+
+Access_data <- Access_data |>
+  mutate(
+    DiamID = Diam_Code,
+    Scientific_Name = WoodySpecies
+  )
+
+glimpse(Access_data)
+
+glimpse(end2end)
+
+# Drop all but matching columns
+
+Access_data <- Access_data |>
+  select(EventID, LocationID, FeatureID, Module_No, Scientific_Name, DiamID,
+         Count)
+
+glimpse(Access_data)
+
+glimpse(end2end)
+
+# Test for differences
+
+
+my_columns = c('EventID', 'LocationID', 'FeatureID', 'Module_No', 
+              'Scientific_Name', 'DiamID', 'Count')
+
+view(anti_join(Access_data, end2end, by=my_columns))
+
+# The LocationID NA's were removed from the database.
+
+view(anti_join(end2end, Access_data, by=my_columns))
+
+
+
 # need to test for duplicate records
 
 Access_data |>
@@ -347,7 +391,7 @@ Access_data |>
   filter(Count == -9999)
 
 
-end2end <- read_csv("qrye2e_VIBI_woody.csv")
+
 
 problems(end2end)
 
@@ -355,14 +399,6 @@ glimpse(end2end)
 
 glimpse(Access_data)
 
-
-# matching column names
-
-Access_data <- Access_data |>
-  mutate(
-    DiamID = Diam_Code,
-    Scientific_Name = WoodySpecies
-  )
 
 Access_data <- Access_data |>
   select(EventID, LocationID, FeatureID, Module_No, Scientific_Name, DiamID, 
