@@ -15,7 +15,7 @@
 
 library(tidyverse)
 
-#setwd("./herb")
+#setwd("./VIBI-herbaceous")
 
 
 #################
@@ -163,13 +163,26 @@ Access_data <- Access_data |>
 
 # First test for NA's in FeatureID column
 
+# subset(Access_data,is.na(FeatureID))
+
+# there are no NAs in FeatureID column
+
+# Locations_LUT <- read_csv("tbl_Locations_20230316.csv")
+
+# glimpse(Locations_LUT)
+
+# repeat above steps using corrected locations ---------------------------------
+
+# First test for NA's in FeatureID column
+
 subset(Access_data,is.na(FeatureID))
 
 # there are no NAs in FeatureID column
 
-Locations_LUT <- read_csv("tbl_Locations_20230316.csv")
+Locations_LUT <- read_csv("tbl_Locations_fixed.csv")
 
 glimpse(Locations_LUT)
+
 
 Access_data <- Access_data |>
   left_join(Locations_LUT, join_by(FeatureID))
@@ -191,9 +204,8 @@ df
 Access_data <- Access_data |>
   filter(!is.na(LocationID))
 
-# going to drop these NAs for now
-# resolve them after they are added to the 
-# locations table in HTLNWetlands db
+# should be zero rows for the above tests once locations are fixed
+
 
 
 #################
@@ -208,7 +220,7 @@ Access_data <- Access_data |>
   select(EventID, LocationID, FeatureID, Species, Comments, Module,
          CoverClass, CoverClassAll, EditDate )
 
-writexl::write_xlsx(Access_data, "Load_VIBI_herb_2023.xlsx")
+#writexl::write_xlsx(Access_data, "Load_VIBI_herb_2023.xlsx")
 
 
 
@@ -284,26 +296,34 @@ my_columns = c('EventID', 'LocationID', 'FeatureID', 'Species', 'ModNo', 'CovCod
 
 view(anti_join(Access_data, end2end, by=my_columns))
 
-# all the extract Access_data records have null LocationIDs.
-# do these show up in Access 
-
-# yes - so need to remove them and re-import
-
-# what about stuff in the end2end that wasn't in the original loadfile
+# all the extract Access_data records have the result of corrected locations
+# verify this
 
 df <- anti_join(end2end, Access_data, by=my_columns)
 
-df
+df |>
+  distinct(FeatureID)
+
+# The corrected locations for VIBI were 
+# VIBI_herbaceous:
+  
+#   HerbSiteName FeatureID LocationID
+# <chr>        <chr>     <chr>    database/geodatabase name:
+#  1 242VK4       242VK4    NA        (241VK4)
+#  2 1627KR2      1627KR2   NA        (1627KR)
+#  3 1622KR1      1622KR1   NA        (1622KR)
+#  4 1627KR1      1627KR1   NA         (1627KR)
+
 
 # there are no records. So, need to filter out the N/A locations in the original
 # Access_data / load file and repeat this process.
 
+# example code
+# flights2 |> 
+#   anti_join(airports, join_by(dest == faa)) |> 
+#   distinct(dest) 
 
-flights2 |> 
-  anti_join(airports, join_by(dest == faa)) |> 
-  distinct(dest) 
-
-anti_join(df1, df2, by=c('team', 'position'))
+# anti_join(df1, df2, by=c('team', 'position'))
 
 # Selecting the columns that matter
 
