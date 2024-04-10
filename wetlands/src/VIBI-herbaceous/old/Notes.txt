@@ -1,0 +1,15 @@
+
+
+20231201
+
+VIBI_herb is ready to load.
+
+The file Load_VIBI_herb_2023.xlsx is ready to load into tbl_VIBI_Herb. The script
+that generated it is called Survey123_VIBI_herb_outline_datetime2.R
+
+ToDo...
+
+Go ahead and load it. End-to-end test: Export entire match the filtered export 
+with the original data file. Need to combine and clean VIBI woody.
+
+
