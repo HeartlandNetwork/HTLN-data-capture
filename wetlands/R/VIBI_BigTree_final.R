@@ -160,11 +160,13 @@ glimpse(Access_data)
 # Step 5 - create the LocationID column from the FeatureID column
 #   and a lookup table from HTLNWetlands
 #
+#   corrected for fixed FeatureIDs
+#
 ##########
 
 
-Locations_LUT <- read_csv("tbl_Locations_20230316.csv")
-
+# Locations_LUT <- read_csv("tbl_Locations_20230316.csv")
+Locations_LUT <- read_csv("tbl_Locations_fixed.csv")
 glimpse(Locations_LUT)
 
 Access_data <- Access_data |>
@@ -182,8 +184,6 @@ glimpse(Access_data)
 
 # Rename columns using DiamID values for pivot_longer
 
-loadfile <- Access_data # "before" to validate pivot_longer
-
 Access_data$Tree1 <- Access_data$Dgt40_1 
 Access_data$Tree2 <- Access_data$Dgt40_2 
 Access_data$Tree3 <- Access_data$Dgt40_3
@@ -193,7 +193,7 @@ Access_data$Tree5 <- Access_data$Dgt40_5
 Access_data <- Access_data |>
   mutate( Scientific_Name = WoodySpecies) |>
   mutate( SampleDate = EditDate) |>
-  select(EventID, LocationID, Module_No, Scientific_Name, Tree1, 
+  select(EventID, LocationID, FeatureID, Module_No, Scientific_Name, Tree1, 
          Tree2, Tree3, Tree4, Tree5)
 
 
@@ -212,35 +212,6 @@ Access_data <- Access_data |>
 
 glimpse(Access_data)
 
-#################
-#
-# Step 6b - Validate normalization and join using
-#          Sum of counts in initial load file
-#          against total_counts for each diameter 
-#          in final version
-#
-#################
-
-glimpse(loadfile)
-glimpse(Access_data)
-
-
-Initial_load <- loadfile |>
-  select(Dgt40_1, Dgt40_2, Dgt40_3, Dgt40_4, Dgt40_5)
-
-
-colSums(Initial_load, na.rm=TRUE)
-
-
-Access_data |>
-  group_by(TreeName) |> 
-  summarize(
-    DBH_sum = sum(round(DBH,2))
-  )
-
-# precision was dropped by 0.1
-
-
 ##########
 #
 # Step 7 - check for duplicates
@@ -250,43 +221,37 @@ Access_data |>
 # test for dups
 
 Access_data |> 
-  select(EventID, LocationID, Module_No, Scientific_Name, DBH)
+  select(EventID, LocationID, FeatureID, Module_No, Scientific_Name, DBH)
 
 Access_data |> 
-  group_by(EventID, LocationID, Module_No, Scientific_Name, DBH) |> 
+  group_by(EventID, LocationID, FeatureID, Module_No, Scientific_Name, DBH) |> 
   summarize(
     n = n(),
   ) |> 
   filter(n > 1)
 
-# Remove dups with distinct() 
+# Remove duplicates
 
-Access_data <- Access_data |>
-  distinct(EventID, LocationID, Module_No, Scientific_Name, DBH)
-
-Access_data
-
-# test for dups
+Access_data <- Access_data |> 
+  distinct(EventID, LocationID, FeatureID, Module_No, Scientific_Name, DBH)
 
 Access_data |> 
-  group_by(EventID, LocationID, Module_No, Scientific_Name, DBH) |> 
+  group_by(EventID, LocationID, FeatureID, Module_No, Scientific_Name, DBH) |> 
   summarize(
     n = n(),
   ) |> 
   filter(n > 1)
-
 
 
 #view(Access_data)
 
-#writexl::write_xlsx(Access_data, "Load_VIBI_BigTrees_2023.xlsx")
+# writexl::write_xlsx(Access_data, "Load_VIBI_BigTrees_2023.xlsx")
 
 
 
 
 #------------------------------------------------------------------------------
 # End2End test begins here
-
 
 
 end2end <- read_csv("qrye2e_bigtrees.csv")
@@ -298,20 +263,6 @@ glimpse(end2end)
 glimpse(Access_data)
 
 
-
-# need to test for duplicate records
-
-Access_data |>
-  count(EventID, LocationID, Module_No, Scientific_Name, DBH) |>
-  filter(n > 1)
-
-# test for presence of -9999 in anything
-
-Access_data |>
-  filter(DBH == -9999)
-
-
-
 # matching column names
 
 Access_data <- Access_data |>
@@ -320,7 +271,11 @@ Access_data <- Access_data |>
   )
 
 Access_data <- Access_data |>
-  select(EventID, LocationID, ModNo, Scientific_Name, DBH) 
+  select(EventID, LocationID, FeatureID, ModNo, Scientific_Name, DBH) 
+
+glimpse(end2end)
+
+glimpse(Access_data)
 
 # testing for PK - unique no-nulls
 
@@ -332,10 +287,32 @@ end2end |>
   count(EventID, LocationID, ModNo, Scientific_Name, DBH) |>
   filter(n > 1)
 
-end2enddups <- end2end |>
-  count(EventID, LocationID, Module_No, Scientific_Name, DiamID, Count) |>
-  filter(n > 1) |>
-  print(n = 45)
+# Testing for corrected locations
 
-writexl::write_xlsx(end2enddups, "End2End_Dups.xlsx")
+#  VIBI-BigTrees:
+  
+#   WoodySiteName FeatureID LocationID
+#  <chr>         <chr>     <chr>    
+#  1 1627KR2       1627KR2   NA   (1627KR)  
+#  2 1622KR1       1622KR1   NA   (1622KR)
+
+
+glimpse(end2end)
+
+glimpse(Access_data)
+
+# what are the record differences between these two dataframes
+
+my_columns <- c('EventID', 'LocationID', 'FeatureID', 'ModNo', 
+                'Scientific_Name','DBH')
+
+df <- anti_join(end2end, Access_data, by=my_columns)
+df 
+
+df <- anti_join(Access_data, end2end, by=my_columns)
+df
+
+# there are not differences...
+
+
 
