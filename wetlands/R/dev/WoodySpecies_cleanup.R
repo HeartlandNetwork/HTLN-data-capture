@@ -6,6 +6,8 @@ library(tidyverse)
 
 WoodySpecies_LUT <- read_csv("WoodySpecies_LUT.csv")
 
+problems(WoodySpecies_LUT)
+
 glimpse(WoodySpecies_LUT)
 
 # Remove NAs from WoodySpecies column
