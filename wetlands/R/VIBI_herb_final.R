@@ -163,18 +163,6 @@ Access_data <- Access_data |>
 
 # First test for NA's in FeatureID column
 
-# subset(Access_data,is.na(FeatureID))
-
-# there are no NAs in FeatureID column
-
-# Locations_LUT <- read_csv("tbl_Locations_20230316.csv")
-
-# glimpse(Locations_LUT)
-
-# repeat above steps using corrected locations ---------------------------------
-
-# First test for NA's in FeatureID column
-
 subset(Access_data,is.na(FeatureID))
 
 # there are no NAs in FeatureID column
@@ -182,7 +170,6 @@ subset(Access_data,is.na(FeatureID))
 Locations_LUT <- read_csv("tbl_Locations_fixed.csv")
 
 glimpse(Locations_LUT)
-
 
 Access_data <- Access_data |>
   left_join(Locations_LUT, join_by(FeatureID))
@@ -193,7 +180,7 @@ df <- subset(Access_data,is.na(LocationID))
 
 glimpse(df)
 
-# which FeatureIDs aren't matching up
+# locate any FeatureIDs aren't matching up
 
 df <- df |>
   distinct(LocationID, FeatureID)
