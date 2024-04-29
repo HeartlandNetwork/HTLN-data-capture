@@ -1,12 +1,12 @@
 
 ################################################################################
 #
-#  VIBI_herb_end2end.R
+#  VIBI_herb_final.R
 #
-#  Gareth Rowell, 2/16/2024
+#  Gareth Rowell, 4/26/2024
 #
-#  This end2end test compares the original 2023 data against
-#  the exported table tbl_VIBI_herb after its been appended with the 
+#  Generates loadfile for tbl_VIBI_herb and provides end2end
+#  tests for exported table tbl_VIBI_herb after its been appended with the 
 #  2023 data.
 #
 #
