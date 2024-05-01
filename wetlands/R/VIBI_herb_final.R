@@ -1,12 +1,12 @@
 
 ################################################################################
 #
-#  VIBI_herb_end2end.R
+#  VIBI_herb_final.R
 #
-#  Gareth Rowell, 2/16/2024
+#  Gareth Rowell, 4/26/2024
 #
-#  This end2end test compares the original 2023 data against
-#  the exported table tbl_VIBI_herb after its been appended with the 
+#  Generates loadfile for tbl_VIBI_herb and provides end2end
+#  tests for exported table tbl_VIBI_herb after its been appended with the 
 #  2023 data.
 #
 #
@@ -163,18 +163,6 @@ Access_data <- Access_data |>
 
 # First test for NA's in FeatureID column
 
-# subset(Access_data,is.na(FeatureID))
-
-# there are no NAs in FeatureID column
-
-# Locations_LUT <- read_csv("tbl_Locations_20230316.csv")
-
-# glimpse(Locations_LUT)
-
-# repeat above steps using corrected locations ---------------------------------
-
-# First test for NA's in FeatureID column
-
 subset(Access_data,is.na(FeatureID))
 
 # there are no NAs in FeatureID column
@@ -182,7 +170,6 @@ subset(Access_data,is.na(FeatureID))
 Locations_LUT <- read_csv("tbl_Locations_fixed.csv")
 
 glimpse(Locations_LUT)
-
 
 Access_data <- Access_data |>
   left_join(Locations_LUT, join_by(FeatureID))
@@ -193,7 +180,7 @@ df <- subset(Access_data,is.na(LocationID))
 
 glimpse(df)
 
-# which FeatureIDs aren't matching up
+# locate any FeatureIDs aren't matching up
 
 df <- df |>
   distinct(LocationID, FeatureID)
@@ -263,7 +250,7 @@ glimpse(Access_data)
 
 glimpse(end2end)
 
-# record counts match
+# test for duplicates
 
 
 Access_data |>
