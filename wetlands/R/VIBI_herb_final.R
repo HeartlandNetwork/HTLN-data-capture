@@ -250,7 +250,7 @@ glimpse(Access_data)
 
 glimpse(end2end)
 
-# record counts match
+# test for duplicates
 
 
 Access_data |>
