@@ -16,7 +16,13 @@
 
 library(tidyverse)
 
-# setwd("./VIBI-BigTrees")
+# Set the working directory 
+
+setwd("C:/Users/growell/HTLN-data-capture/invasiveplants")
+
+getwd()
+
+
 
 
 #################

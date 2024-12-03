@@ -5,6 +5,11 @@ relational databases.
 
 # Notes
 
+InvasivePlants folder contains R scripts to process Survey123 spreadsheets to
+be appended to the main data table.
+
+
+
 The Wetlands folder contains R scripts to process Survey123 spreadsheets so
 they can be appended to VIBI herbaceous, VIBI woody and VIBI big tree tables
 in the HTLNWetlands Access database. The scripts also include end-to-end
